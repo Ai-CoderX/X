@@ -164,7 +164,7 @@ cmd({
     react: "🔨",
     filename: __filename
 },
-async (conn, mek, m, { from, reply, isCreator, args, prefix, updateUserConfig, userConfig, sanitizedNumber }) => {
+async (conn, mek, m, { from, reply, botNumber2, isCreator, args, prefix, updateUserConfig, userConfig, sanitizedNumber }) => {
     if (!isCreator) {
         return reply("*📛 ᴛʜɪs ɪs ᴀɴ ᴏᴡɴᴇʀ ᴄᴏᴍᴍᴀɴᴅ.*");
     }
@@ -293,7 +293,7 @@ cmd({
     react: "👑",
     filename: __filename
 },
-async (conn, mek, m, { from, reply, isCreator, args, prefix, updateUserConfig, userConfig, sanitizedNumber }) => {
+async (conn, mek, m, { from, reply, isCreator, args, prefix, botNumber2, updateUserConfig, userConfig, sanitizedNumber }) => {
     if (!isCreator) {
         return reply("*📛 ᴛʜɪs ɪs ᴀɴ ᴏᴡɴᴇʀ ᴄᴏᴍᴍᴀɴᴅ.*");
     }
