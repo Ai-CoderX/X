@@ -53,7 +53,7 @@ cmd({
         // Check if URL is provided
         if (!args[0]) {
             await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
-            return reply(`❌ *Please provide a channel post URL!*\n\n*Example:*\n.reactpost https://whatsapp.com/channel/0029VbBgtnCBKfiALWIRPw14/2973 😂,❤️,🔥\n\n*Or with newsletter JID:*\n.reactpost 120363354023106228@newsletter/2973 😂,❤️,🔥`);
+            return reply(`❌ *Please provide a channel post URL!*\n\n*Example:*\n.chreact https://whatsapp.com/channel/0029VatOy2EAzNc2WcShQw1j/5300 😂,❤️,🔥`);
         }
         
         // Send processing reaction
