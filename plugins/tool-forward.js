@@ -1,6 +1,4 @@
-// Jawad TechX - KHAN XMD 
-// Native Forward Command 
-// Dont Remove Credit From File
+// KHAN MD 
 
 const { cmd } = require("../command");
 const { generateWAMessageFromContent } = require('@whiskeysockets/baileys');
@@ -11,13 +9,13 @@ cmd({
   desc: "Forward messages to groups using WhatsApp native method",
   category: "owner",
   filename: __filename
-}, async (client, message, match, { isCreator }) => {
+}, async (client, message, match, { isCreator, reply, from }) => {
   try {
-    // Owner check
-    if (!isCreator) return await message.reply("*📛 Owner Only Command*");
+    // Owner check - use reply function from context
+    if (!isCreator) return await reply("*📛 Owner Only Command*");
     
     // Quoted message check
-    if (!message.quoted) return await message.reply("*🍁 Please reply to a message to forward*");
+    if (!message.quoted) return await reply("*🍁 Please reply to a message to forward*");
 
     // Handle match input
     let jidInput = "";
@@ -30,7 +28,7 @@ cmd({
     }
     
     if (!jidInput) {
-      return await message.reply(
+      return await reply(
         "*🍁 Usage:* `.forward jid1,jid2,...`\n" +
         "*Example:* `.forward 120363411055156472@g.us`\n" +
         "*Example (multiple):* `.forward 120363411055156472@g.us,1234567890@s.whatsapp.net`\n" +
@@ -38,72 +36,54 @@ cmd({
       );
     }
 
-    // Process JIDs - SUPPORT BOTH GROUP AND PERSONAL JIDs
+    // Process JIDs
     const rawJids = jidInput.split(',').map(jid => jid.trim()).filter(jid => jid);
     const validJids = rawJids
       .map(jid => {
-        // Check if it's a complete JID with suffix
         if (jid.includes('@')) {
-          // Already a proper JID
-          if (jid.endsWith('@g.us') || jid.endsWith('@s.whatsapp.net')) {
-            // Extract numbers from JID if needed
+          if (jid.endsWith('@g.us') || jid.endsWith('@s.whatsapp.net') || jid.endsWith('@newsletter')) {
             const numbers = jid.match(/\d+/g);
             if (!numbers || numbers.length === 0) return null;
             
             if (jid.endsWith('@g.us')) {
               return `${numbers.join('')}@g.us`;
-            } else {
+            } else if (jid.endsWith('@s.whatsapp.net')) {
               return `${numbers.join('')}@s.whatsapp.net`;
+            } else if (jid.endsWith('@newsletter')) {
+              return `${numbers.join('')}@newsletter`;
             }
           }
           return null;
-        } 
-        // If just numbers, assume it's a group JID
-        else if (/^\d+$/.test(jid)) {
+        } else if (/^\d+$/.test(jid)) {
           return `${jid}@g.us`;
         }
         return null;
       })
       .filter(jid => jid !== null)
-      .slice(0, 50); // Max 50 like other bot
+      .slice(0, 50);
 
     if (validJids.length === 0) {
-      return await message.reply(
-        "❌ No valid JIDs found\n" +
-        "Provide JIDs like:\n" +
-        "• `120363411055156472@g.us` (group)\n" +
-        "• `1234567890@s.whatsapp.net` (personal)\n" +
-        "• `120363411055156472@g.us,1234567890@s.whatsapp.net` (multiple)\n" +
-        "• `120363411055156472` (numbers only = group)\n" +
-        "Separate multiple with commas"
-      );
+      return await reply("❌ No valid JIDs found");
     }
 
     // Remove duplicates
     const uniqueJids = [...new Set(validJids)];
     
     // Start processing
-    await message.reply(`🔄 Forwarding to ${uniqueJids.length} chats...`);
+    await reply(`🔄 Forwarding to ${uniqueJids.length} chats...`);
 
     let successCount = 0;
     const failedJids = [];
 
-    // Get the quoted message properly
-    const quotedMsg = message.quoted;
+    // Get the quoted message content from the original message's contextInfo
+    const quotedContent = message.msg?.contextInfo?.quotedMessage;
     
-    // Check if we have the proper message structure
-    if (!quotedMsg.message && !quotedMsg.key) {
-      // Try to create message structure if missing
-      const messageType = quotedMsg.mtype;
-      const messageContent = {};
-      
-      if (messageType && messageType.includes('Message')) {
-        const typeKey = messageType.replace('Message', '');
-        messageContent[typeKey.toLowerCase() + 'Message'] = quotedMsg;
-      }
-      
-      quotedMsg.message = messageContent;
+    if (!quotedContent) {
+      return await reply("❌ Could not extract quoted message content");
     }
+
+    // Create message structure for forwarding
+    const messageContent = { ...quotedContent };
 
     // Forward to each chat
     for (const [index, jid] of uniqueJids.entries()) {
@@ -111,11 +91,11 @@ cmd({
         // Create the message to forward
         const forwardData = generateWAMessageFromContent(
           jid,
-          quotedMsg.message || quotedMsg,
+          messageContent,
           { userJid: client.user.id }
         );
 
-        // Send using relayMessage for native forwarding
+        // Send using relayMessage
         await client.relayMessage(jid, forwardData.message, {
           messageId: forwardData.key.id
         });
@@ -124,7 +104,7 @@ cmd({
         
         // Progress update every 5 chats
         if ((index + 1) % 5 === 0 && uniqueJids.length > 5) {
-          await message.reply(`📤 Sent to ${index + 1}/${uniqueJids.length} chats...`);
+          await reply(`📤 Sent to ${index + 1}/${uniqueJids.length} chats...`);
         }
         
         // Small delay
@@ -135,7 +115,9 @@ cmd({
       } catch (error) {
         console.error(`Forward error to ${jid}:`, error.message);
         failedJids.push({
-          jid: jid.includes('@g.us') ? jid.replace('@g.us', '') : jid.replace('@s.whatsapp.net', ''),
+          jid: jid.includes('@g.us') ? jid.replace('@g.us', '') : 
+               jid.includes('@s.whatsapp.net') ? jid.replace('@s.whatsapp.net', '') :
+               jid.replace('@newsletter', ''),
           error: error.message.substring(0, 30)
         });
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -146,16 +128,17 @@ cmd({
     let report = `✅ *Forward Complete*\n\n` +
                  `📤 Success: ${successCount}/${uniqueJids.length}\n`;
     
-    if (quotedMsg.mtype) {
-      const contentType = quotedMsg.mtype.replace('Message', '');
-      report += `📦 Content Type: ${contentType}\n`;
-    }
+    // Get content type from quotedContent keys
+    const contentType = Object.keys(quotedContent)[0] || 'unknown';
+    report += `📦 Content Type: ${contentType.replace('Message', '')}\n`;
     
     // Count types
     const groupCount = uniqueJids.filter(jid => jid.endsWith('@g.us')).length;
     const personalCount = uniqueJids.filter(jid => jid.endsWith('@s.whatsapp.net')).length;
+    const newsletterCount = uniqueJids.filter(jid => jid.endsWith('@newsletter')).length;
     report += `👥 Groups: ${groupCount}\n`;
     report += `👤 Personal: ${personalCount}\n`;
+    report += `📰 Newsletters: ${newsletterCount}\n`;
     
     if (failedJids.length > 0) {
       report += `\n❌ Failed (${failedJids.length}):\n`;
@@ -166,22 +149,13 @@ cmd({
     }
     
     if (rawJids.length > uniqueJids.length) {
-      report += `\n⚠️ Removed ${rawJids.length - uniqueJids.length} duplicate JIDs`;
-    }
-    
-    if (rawJids.length > 50) {
-      report += `\n⚠️ Limited to first 50 of ${rawJids.length} JIDs`;
+      report += `\n⚠️ Removed ${rawJids.length - uniqueJids.length} invalid/duplicate JIDs`;
     }
 
-    await message.reply(report);
+    await reply(report);
 
   } catch (error) {
     console.error("Forward Error:", error);
-    await message.reply(
-      `💢 Error: ${error.message.substring(0, 100)}\n\n` +
-      `Try:\n1. Make sure bot is admin in target groups\n` +
-      `2. Use recent messages (not too old)\n` +
-      `3. Check JID format`
-    );
+    await reply(`💢 Error: ${error.message.substring(0, 100)}`);
   }
 });
