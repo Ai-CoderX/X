@@ -704,7 +704,7 @@ cmd({
 
 // Remove BG v2
 cmd({
-    pattern: "removebg2",
+    pattern: "removebg",
     alias: ["nobg2", "rmbg2"],
     desc: "Remove background from image (v2)",
     category: "tools",
@@ -740,7 +740,7 @@ cmd({
 // ==================== REMINI COMMAND ====================
 
 cmd({
-    pattern: "remini2",
+    pattern: "remini",
     alias: ["enhance2", "hd2"],
     desc: "Enhance image quality using Remini",
     category: "tools",
