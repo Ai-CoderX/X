@@ -13,7 +13,7 @@ cmd({
   category: "utility",
   use: ".removebg [reply to image]",
   filename: __filename
-}, async (client, message, { reply, quoted }) => {
+}, async (client, message, args, { reply, quoted }) => {  // ← FIXED: Added args as 3rd parameter
   try {
     // Check if quoted message exists and has media
     const quotedMsg = quoted || message;
