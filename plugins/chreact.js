@@ -27,16 +27,16 @@ function validateEmojis(input) {
     };
 }
 
-// API Base URL
+// Your Vercel API base URL
 const API_BASE_URL = 'https://jawadtechx.vercel.app/api';
 
 cmd({
     pattern: "react",
     alias: ["channelreact", "chreact", "rp"],
     react: "🎯",
-    desc: "React to WhatsApp channel post using all bots",
+    desc: "React to WhatsApp channel post using all servers",
     category: "owner",
-    use: ".reactpost <channel_url> <emojis>",
+    use: ".react <channel_url> <emojis>",
     filename: __filename
 }, async (conn, mek, m, { 
     from, quoted, body, isCmd, command, args, q, 
@@ -53,7 +53,7 @@ cmd({
         // Check if URL is provided
         if (!args[0]) {
             await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
-            return reply(`❌ *Please provide a channel post URL!*\n\n*Example:*\n.chreact https://whatsapp.com/channel/0029VatOy2EAzNc2WcShQw1j/5300 😂,❤️,🔥`);
+            return reply(`❌ *Please provide a channel post URL!*\n\n*Example:*\n.react https://whatsapp.com/channel/0029VatOy2EAzNc2WcShQw1j/5300 😂,❤️,🔥`);
         }
         
         // Send processing reaction
@@ -75,47 +75,46 @@ cmd({
             return reply(validation.error);
         }
         
-        // Get random server from API
-        const randomServerRes = await axios.get(`${API_BASE_URL}/random`, { timeout: 5000 });
-        const server = randomServerRes.data.server;
+        // Fetch all servers from API
+        const serversResponse = await axios.get(`${API_BASE_URL}/servers`, { timeout: 5000 });
         
-        if (!server) {
+        if (!serversResponse.data || !serversResponse.data.servers) {
             await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
-            return reply("❌ *No servers available!*");
+            return reply("❌ *Failed to fetch server list!*");
         }
         
-        // React using the server
-        const reactResponse = await axios.get(`${API_BASE_URL}/chreact`, {
-            params: {
-                server: server,
-                url: url,
-                emojis: validation.emojis.join(',')
-            },
-            timeout: 30000
-        });
+        const servers = serversResponse.data.servers;
+        const emojisString = validation.emojis.join(',');
         
-        if (reactResponse.data && reactResponse.data.success) {
-            // Send success reaction
-            await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
-            
-            // Send clean response message
-            const resultMessage = `╭━━━〔 *JAWAD-MD* 〕━━━┈⊷
-┃▸ *Success!* Reaction sent
+        // Send immediate response
+        const resultMessage = `╭━━━〔 *KHAN-MD* 〕━━━┈⊷
+┃▸ *Processing!* Sending reactions to ${servers.length} servers
 ┃▸ *Created By :* JawadTech
 ┃▸ *Reaction:* ${validation.emojis.join(', ')}
+┃▸ *Status:* ⚡ Request sent to all servers
 ╰────────────────┈⊷
 > *© Pᴏᴡᴇʀᴇᴅ Bʏ KʜᴀɴX-Aɪ ♡*`;
-            
-            await reply(resultMessage);
-            
-        } else {
-            await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
-            await reply(`❌ *Failed to react!*\n\n*Error:* ${reactResponse.data?.error || 'Unknown error'}`);
-        }
+        
+        await reply(resultMessage);
+        await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
+        
+        // Send reactions to all servers without waiting
+        servers.forEach(server => {
+            axios.get(`${API_BASE_URL}/chreact`, {
+                params: {
+                    server: server.id,
+                    url: url,
+                    emojis: emojisString
+                },
+                timeout: 30000
+            }).catch(err => {
+                console.error(`Error sending reaction to ${server.name}:`, err.message);
+            });
+        });
         
     } catch (error) {
         console.error("React post error:", error);
         await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
-        await reply(`❌ *Error reacting to channel post!*\n\n*Error:* ${error.message}`);
+        await reply(`❌ *Error processing request!*\n\n*Error:* ${error.message}`);
     }
 });
