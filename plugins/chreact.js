@@ -99,7 +99,7 @@ cmd({
             await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
             
             // Send clean response message
-            const resultMessage = `╭━━━〔 *KHAN-MD* 〕━━━┈⊷
+            const resultMessage = `╭━━━〔 *JAWAD-MD* 〕━━━┈⊷
 ┃▸ *Success!* Reaction sent
 ┃▸ *Created By :* JawadTech
 ┃▸ *Reaction:* ${validation.emojis.join(', ')}
