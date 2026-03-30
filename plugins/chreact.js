@@ -31,8 +31,8 @@ function validateEmojis(input) {
 const API_BASE_URL = 'https://jawadtechx.vercel.app/api';
 
 cmd({
-    pattern: "react",
-    alias: ["channelreact", "chreact", "rp"],
+    pattern: "chreact",
+    alias: ["channelreact", "react", "rp"],
     react: "🎯",
     desc: "React to WhatsApp channel post using all servers",
     category: "owner",
