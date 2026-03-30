@@ -86,14 +86,10 @@ cmd({
         const servers = serversResponse.data.servers;
         const emojisString = validation.emojis.join(',');
         
-        // Send immediate response
-        const resultMessage = `╭━━━〔 *KHAN-MD* 〕━━━┈⊷
-┃▸ *Processing!* Sending reactions to ${servers.length} servers
-┃▸ *Created By :* JawadTech
-┃▸ *Reaction:* ${validation.emojis.join(', ')}
-┃▸ *Status:* ⚡ Request sent to all servers
-╰────────────────┈⊷
-> *© Pᴏᴡᴇʀᴇᴅ Bʏ KʜᴀɴX-Aɪ ♡*`;
+        // Send immediate response with updated format
+        const resultMessage = `*Channel Reacts Sent Successfully ✅*
+
+> *© Pᴏᴡᴇʀᴇᴅ Bʏ Jᴀᴡᴀᴅ Tᴇᴄʜ-♡*`;
         
         await reply(resultMessage);
         await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
