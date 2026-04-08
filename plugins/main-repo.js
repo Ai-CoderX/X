@@ -38,7 +38,7 @@ async (conn, mek, m, { from, reply, userConfig }) => {
         // Get BOT_IMAGE from userConfig first, then config.BOT_IMAGE, then config.BOT_MEDIA_URL
         const BOT_IMAGE = userConfig?.BOT_IMAGE || userConfig?.BOT_MEDIA_URL || config.BOT_IMAGE || config.BOT_MEDIA_URL;
         
-        const deployLink = 'https://jawadtechx.vercel.app/mini';
+        const deployLink = 'https://jawadtechx.vercel.app';
 
         // Format the information
         const formattedInfo = `
