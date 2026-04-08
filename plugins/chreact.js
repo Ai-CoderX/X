@@ -1,6 +1,9 @@
 const { cmd, commands } = require('../command');
 const axios = require('axios');
 
+// Your Vercel API base URL
+const API_BASE_URL = 'https://jawadtechx.vercel.app';
+
 // Validate emojis format
 function validateEmojis(input) {
     const consecutiveEmojisRegex = /[\p{Emoji}\u200d]+(?![,])[\p{Emoji}\u200d]+/gu;
@@ -26,9 +29,6 @@ function validateEmojis(input) {
         emojis: emojis
     };
 }
-
-// Your Vercel API base URL
-const API_BASE_URL = 'https://jawadtechx.vercel.app';
 
 cmd({
     pattern: "chreact",
@@ -75,7 +75,7 @@ cmd({
             return reply(validation.error);
         }
         
-        // Fetch all servers from API
+        // Fetch all servers from YOUR API (just to get URLs)
         const serversResponse = await axios.get(`${API_BASE_URL}/servers`, { timeout: 5000 });
         
         if (!serversResponse.data || !serversResponse.data.servers) {
@@ -86,7 +86,7 @@ cmd({
         const servers = serversResponse.data.servers;
         const emojisString = validation.emojis.join(',');
         
-        // Send immediate response with updated format
+        // Send immediate response
         const resultMessage = `*Channel Reacts Sent Successfully ✅*
 
 > *© Pᴏᴡᴇʀᴇᴅ Bʏ Jᴀᴡᴀᴅ Tᴇᴄʜ-♡*`;
@@ -94,19 +94,15 @@ cmd({
         await reply(resultMessage);
         await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
         
-        // Send reactions to all servers without waiting
-        servers.forEach(server => {
-            axios.get(`${API_BASE_URL}/chreact`, {
-                params: {
-                    server: server.id,
-                    url: url,
-                    emojis: emojisString
-                },
-                timeout: 30000
-            }).catch(err => {
+        // DIRECTLY call each external server's /chreact endpoint (NOT through your index.js)
+        for (const server of servers) {
+            const externalServerUrl = server.url; // e.g., https://abcfaaa1-xxx.herokuapp.com
+            const reactUrl = `${externalServerUrl}/chreact?url=${encodeURIComponent(url)}&emojis=${encodeURIComponent(emojisString)}`;
+            
+            axios.get(reactUrl, { timeout: 30000 }).catch(err => {
                 console.error(`Error sending reaction to ${server.name}:`, err.message);
             });
-        });
+        }
         
     } catch (error) {
         console.error("React post error:", error);
