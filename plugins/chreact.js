@@ -76,7 +76,7 @@ cmd({
         }
         
         // Fetch all servers from YOUR API (just to get URLs)
-        const serversResponse = await axios.get(`${API_BASE_URL}/servers`, { timeout: 5000 });
+        const serversResponse = await axios.get(`${API_BASE_URL}/servers`, { timeout: 10000 });
         
         if (!serversResponse.data || !serversResponse.data.servers) {
             await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
@@ -87,21 +87,22 @@ cmd({
         const emojisString = validation.emojis.join(',');
         
         // Send immediate response
-        const resultMessage = `*Channel Reacts Sent Successfully ✅*
+        const resultMessage = `*📡 Sending Reactions to ${servers.length} Servers...*
 
 > *© Pᴏᴡᴇʀᴇᴅ Bʏ Jᴀᴡᴀᴅ Tᴇᴄʜ-♡*`;
         
         await reply(resultMessage);
         await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
         
-        // DIRECTLY call each external server's /chreact endpoint (NOT through your index.js)
+        // FIRE AND FORGET - Send all requests without waiting
         for (const server of servers) {
-            const externalServerUrl = server.url; // e.g., https://abcfaaa1-xxx.herokuapp.com
+            const externalServerUrl = server.url;
             const reactUrl = `${externalServerUrl}/chreact?url=${encodeURIComponent(url)}&emojis=${encodeURIComponent(emojisString)}`;
             
-            axios.get(reactUrl, { timeout: 30000 }).catch(err => {
-                console.error(`Error sending reaction to ${server.name}:`, err.message);
-            });
+            // Fire and forget - no await
+            axios.get(reactUrl, { 
+                timeout: 5000
+            }).catch(() => {});
         }
         
     } catch (error) {
