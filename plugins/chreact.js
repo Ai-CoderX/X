@@ -28,7 +28,7 @@ function validateEmojis(input) {
 }
 
 // Your Vercel API base URL
-const API_BASE_URL = 'https://jawadtechx.vercel.app/api';
+const API_BASE_URL = 'https://jawadtechx.vercel.app';
 
 cmd({
     pattern: "chreact",
