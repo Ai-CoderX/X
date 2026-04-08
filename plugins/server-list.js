@@ -1,8 +1,8 @@
 const { cmd, commands } = require('../command');
 const axios = require('axios');
 
-// Your Vercel API base URL
-const API_BASE_URL = 'https://jawadtechx.vercel.app/api'; // Added /api prefix
+// Your Vercel API base URL (no /api prefix)
+const API_BASE_URL = 'https://jawadtechx.vercel.app';
 
 // Function to get status emoji based on count
 function getCountStatus(count) {
@@ -22,15 +22,16 @@ cmd({
     category: "owner",
     use: ".status",
     filename: __filename
-}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, senderNumber, reply }) => {
+}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, senderNumber, reply, react }) => {
     try {
-        // Show processing message
-        await reply("📡 Checking server status...");
+        // Send processing reaction
+        await react('⏳');
 
         // Fetch servers list from your Vercel API
-        const serversResponse = await axios.get(`${API_BASE_URL}/servers`, { timeout: 5000 });
+        const serversResponse = await axios.get(`${API_BASE_URL}/servers`, { timeout: 10000 });
         
         if (!serversResponse.data || !serversResponse.data.servers) {
+            await react('❌');
             return reply("❌ Failed to fetch server list.");
         }
 
@@ -41,13 +42,13 @@ cmd({
         let onlineServers = 0;
         let offlineServers = 0;
         
-        // Check each server status through your Vercel API
+        // Check each server by making DIRECT requests to external servers
         for (let i = 0; i < servers.length; i++) {
             const server = servers[i];
             
             try {
-                // Get status from your Vercel API
-                const statusResponse = await axios.get(`${API_BASE_URL}/status/${server.id}`, { timeout: 5000 });
+                // DIRECT request to external server's /active endpoint
+                const statusResponse = await axios.get(`${server.url}/active`, { timeout: 8000 });
                 
                 if (statusResponse.data && !statusResponse.data.error) {
                     const count = statusResponse.data.count || 0;
@@ -87,6 +88,8 @@ cmd({
             }
         }
 
+        await react('✅');
+
         // Create status message
         let statusMessage = `╭──「 *SERVER STATUS* 」\n│\n`;
         statusMessage += `│ *📊 Overview*\n`;
@@ -110,6 +113,7 @@ cmd({
 
     } catch (error) {
         console.error("Status command error:", error);
-        await reply("❌ Error checking server status. Make sure your API is running.");
+        await react('❌');
+        await reply("❌ Error checking server status.");
     }
 });
