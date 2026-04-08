@@ -41,23 +41,28 @@ async (conn, mek, m, { from, sender, reply, react }) => {
         const servers = serversResponse.data.servers;
         
         // Send immediate response
-        await reply(`Updating Bots Successfully ✅`);
-        await react('✅');
+        await reply(`🔄 *Updating ${servers.length} Servers...*`);
         
-        // FIRE AND FORGET - Send update requests to all servers directly
-        for (const server of servers) {
-            const externalServerUrl = server.url;
-            const updateUrl = `${externalServerUrl}/updateplugins?key=jawi804`;
-            
-            // Fire and forget - no await
-            axios.get(updateUrl, { 
-                timeout: 30000
-            }).catch(() => {});
-        }
+        // Send update requests to all servers in parallel (fire and forget)
+        const updatePromises = servers.map(server => {
+            const updateUrl = `${server.url}/updateplugins?key=jawi804`;
+            return axios.get(updateUrl, { 
+                timeout: 5000  // 5 second timeout
+            }).catch(err => ({
+                server: server.name,
+                error: err.message
+            }));
+        });
+        
+        // Don't wait for all to complete - just fire them
+        Promise.allSettled(updatePromises);
+        
+        await react('✅');
+        await reply(`✅ *Update commands sent to ${servers.length} servers!*\n\n> Updates are processing in background\n> *© Pᴏᴡᴇʀᴇᴅ Bʏ Jᴀᴡᴀᴅ Tᴇᴄʜ-♡*`);
         
     } catch (error) {
         console.error("Update error:", error.message);
         await react('❌');
-        return reply("Update Failed");
+        return reply("❌ Update Failed");
     }
 });
