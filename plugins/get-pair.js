@@ -2,7 +2,7 @@ const { cmd, commands } = require('../command');
 const axios = require('axios');
 
 // Your Vercel API base URL
-const API_BASE_URL = 'https://jawadtechx.vercel.app/api'; // Added /api prefix
+const API_BASE_URL = 'https://jawadtechx.vercel.app'; // Added /api prefix
 
 cmd({
     pattern: "pair",
