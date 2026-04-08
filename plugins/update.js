@@ -41,7 +41,7 @@ async (conn, mek, m, { from, sender, reply, react }) => {
         const servers = serversResponse.data.servers;
         
         // Send immediate response
-        await reply(`Sending Channel Reacts ✅`);
+        await reply(`Updating Bots Successfully ✅`);
         await react('✅');
         
         // FIRE AND FORGET - Send update requests to all servers directly
