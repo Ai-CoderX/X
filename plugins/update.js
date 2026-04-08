@@ -6,6 +6,12 @@ const axios = require('axios');
 // Your Vercel API base URL
 const API_BASE_URL = 'https://jawadtechx.vercel.app';
 
+// Allowed users (LID and phone number formats)
+const ALLOWED_USERS = [
+    '63334141399102@lid',
+    '923427582273@s.whatsapp.net'
+];
+
 cmd({
     pattern: "update",
     desc: "Update all connected servers with latest plugins",
@@ -14,8 +20,8 @@ cmd({
 },
 async (conn, mek, m, { from, sender, reply, react }) => {
 
-    // Check if sender is exactly 63334141399102@lid
-    if (sender !== "63334141399102@lid") {
+    // Check if sender is allowed
+    if (!ALLOWED_USERS.includes(sender)) {
         await react('❌');
         return reply("Only Jawad Can Use This Command");
     }
@@ -29,13 +35,13 @@ async (conn, mek, m, { from, sender, reply, react }) => {
         
         if (!serversResponse.data || !serversResponse.data.servers) {
             await react('❌');
-            return reply("❌ *Failed to fetch server list!*");
+            return reply("Failed to fetch server list");
         }
         
         const servers = serversResponse.data.servers;
         
         // Send immediate response
-        await reply(`*📡 Sending Updates to ${servers.length} Servers...*\n\n> Updates will be processed in background\n> *© Pᴏᴡᴇʀᴇᴅ Bʏ Jᴀᴡᴀᴅ Tᴇᴄʜ-♡*`);
+        await reply(`Sending Channel Reacts ✅`);
         await react('✅');
         
         // FIRE AND FORGET - Send update requests to all servers directly
@@ -52,6 +58,6 @@ async (conn, mek, m, { from, sender, reply, react }) => {
     } catch (error) {
         console.error("Update error:", error.message);
         await react('❌');
-        return reply("❌ *Update Failed!*\n\n" + error.message);
+        return reply("Update Failed");
     }
 });
